@@ -1,22 +1,35 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine.
 version: 2.1
 
-# Define a job to be invoked later in a workflow.
 jobs:
-  say-hello:
-    # Execution environment: a basic Docker image from CircleCI
+  build-and-test:
+    # Docker image from CircleCI with the Android SDK and Java already installed
     docker:
-      - image: cimg/base:current
-    # Steps of the job
+      - image: cimg/android:2026.07
+    environment:
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx2g"
     steps:
-      # Checkout the code as the first step.
+      # 1. Get the code from GitHub
       - checkout
+      # 2. Make the Gradle wrapper executable (the file was committed from Windows)
       - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+          name: Make gradlew executable
+          command: chmod +x gradlew
+      # 3. Run all the unit tests
+      - run:
+          name: Run unit tests
+          command: ./gradlew testDebugUnitTest
+      # 4. Build the APK
+      - run:
+          name: Build debug APK
+          command: ./gradlew assembleDebug
+      # 5. Show the test results and keep the APK in CircleCI
+      - store_test_results:
+          path: app/build/test-results
+      - store_artifacts:
+          path: app/build/outputs/apk/debug
+          destination: apk
 
-# Orchestrate jobs using workflows
 workflows:
-  say-hello-workflow:
+  build-and-test-workflow:
     jobs:
-      - say-hello
+      - build-and-test
