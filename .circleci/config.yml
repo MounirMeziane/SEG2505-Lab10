@@ -1,0 +1,22 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+version: 2.1
+
+# Define a job to be invoked later in a workflow.
+jobs:
+  say-hello:
+    # Execution environment: a basic Docker image from CircleCI
+    docker:
+      - image: cimg/base:current
+    # Steps of the job
+    steps:
+      # Checkout the code as the first step.
+      - checkout
+      - run:
+          name: "Say hello"
+          command: "echo Hello, World!"
+
+# Orchestrate jobs using workflows
+workflows:
+  say-hello-workflow:
+    jobs:
+      - say-hello
